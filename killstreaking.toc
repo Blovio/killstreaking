@@ -1,9 +1,0 @@
-## Interface: 20502
-## Title: Killstreaking
-## Notes: For the dead, may never die.
-## Author: MommaG
-## Version: 0.0.1
-## DefaultState: Disabled
-## SavedVariables: DB
-
-killstreak.lua

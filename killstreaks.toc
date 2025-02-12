@@ -1,0 +1,8 @@
+## Interface: 20502
+## Title: Killstreaks
+## Notes: What is dead, may never die.
+## Author: MommaG
+## Version: 0.0.1
+## DefaultState: Disabled
+
+killstreaks.lua
