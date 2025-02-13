@@ -39,6 +39,8 @@ frame:SetScript("OnEvent", function()
     if isPlayerInRaid then
       if destName == "Neilioeo" then
         SendChatMessage("Good night Neil, my sweet piggly wiggly prince", "SAY")
+     if destName == "Oakren" then
+        SendChatMessage("Oh looks Oakren's dead again....shocker", "SAY")
       else
         if dead <= #multikills then
           SendChatMessage(multikills[dead], "SAY")
