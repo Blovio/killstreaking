@@ -36,13 +36,11 @@ local mk_killing_sprees = {
 }
 
 local function safePlaySound(soundFile, channel)
-	-- Validate that the soundFile is a non-empty string
 	if type(soundFile) ~= "string" or soundFile == "" then
 		print("Killstreaks[INFO]: Invalid sound file provided:", soundFile)
 		return
 	end
 
-	-- Use pcall to catch any errors during playback
 	local success, err = pcall(PlaySoundFile, soundFile, channel)
 	if not success then
 		print("Killstreaks[INFO]: Error playing sound file:", soundFile, "-", err)
