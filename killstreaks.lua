@@ -1,3 +1,5 @@
+local _, killstreaks = ...
+
 local frame = CreateFrame("Frame")
 frame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 
@@ -14,7 +16,15 @@ local multikills = {
 	"Killionaire",
 }
 
-local mk_sound_files = {
+local killing_sprees = {
+	[15] = "Running Riot",
+	[20] = "Rampage",
+	[25] = "Untouchable",
+	[30] = "Invincible",
+	[38] = "Unfrickin-believable",
+}
+
+local multikill_sounds = {
 	"Interface\\AddOns\\Killstreaks\\Sounds\\Brother.mp3",
 	"Interface\\AddOns\\Killstreaks\\Sounds\\DoubleKill.mp3",
 	"Interface\\AddOns\\Killstreaks\\Sounds\\TripleKill.mp3",
@@ -27,7 +37,7 @@ local mk_sound_files = {
 	"Interface\\AddOns\\Killstreaks\\Sounds\\Killionaire.mp3",
 }
 
-local mk_killing_sprees = {
+local killing_spree_sounds = {
 	[15] = "Interface\\AddOns\\Killstreaks\\Sounds\\RunningRiot.mp3",
 	[20] = "Interface\\AddOns\\Killstreaks\\Sounds\\Rampage.mp3",
 	[25] = "Interface\\AddOns\\Killstreaks\\Sounds\\Untouchable.mp3",
@@ -35,16 +45,52 @@ local mk_killing_sprees = {
 	[38] = "Interface\\AddOns\\Killstreaks\\Sounds\\Unfrickinbelievable.mp3",
 }
 
+killstreaks.theme = {
+	r = 1,
+	g = 0.647, -- 204/255
+	b = 0,
+	hex = "ffa500",
+}
+
+local soundDisabled = false
+
+local function getThemeColor()
+	local c = killstreaks.theme
+	return c.r, c.g, c.b, c.hex
+end
+
+local function toggleSound()
+	if soundDisabled then
+		soundDisabled = false
+		killstreaks:Print("sound has been enabled")
+	else
+		soundDisabled = true
+		killstreaks:Print("sound has been disabled")
+	end
+end
+
 local function safePlaySound(soundFile, channel)
 	if type(soundFile) ~= "string" or soundFile == "" then
-		print("Killstreaks[INFO]: Invalid sound file provided:", soundFile)
+		killstreaks:Print("Invalid sound file provided:", soundFile)
 		return
 	end
 
-	local success, err = pcall(PlaySoundFile, soundFile, channel)
-	if not success then
-		print("Killstreaks[INFO]: Error playing sound file:", soundFile, "-", err)
+	if not soundDisabled then
+		local success, err = pcall(PlaySoundFile, soundFile, channel)
+		if not success then
+			killstreaks:Print("Error playing sound file:", soundFile, "-", err)
+		end
 	end
+end
+
+local function play()
+	safePlaySound(killing_spree_sounds[38], "Master")
+end
+
+function killstreaks:Print(...)
+	local hex = select(4, getThemeColor())
+	local prefix = string.format("|cff%s%s|r", hex:upper(), "Killstreaks")
+	DEFAULT_CHAT_FRAME:AddMessage(string.join(" ", prefix, tostringall(...)))
 end
 
 frame:SetScript("OnEvent", function()
@@ -69,10 +115,6 @@ frame:SetScript("OnEvent", function()
 			end
 		end
 
-		if mk_killing_sprees[dead] then
-			safePlaySound(mk_killing_sprees[dead], "Master")
-		end
-
 		if isPlayerInRaid then
 			if destName == "Neilioeo" then
 				SendChatMessage("Good night Neil, my sweet piggly wiggly prince", "SAY")
@@ -82,11 +124,57 @@ frame:SetScript("OnEvent", function()
 			else
 				if dead <= #multikills then
 					SendChatMessage(multikills[dead], "SAY")
-					safePlaySound(mk_sound_files[dead], "Master")
-				else
-					SendChatMessage(multikills[#multikills], "SAY")
+					safePlaySound(multikill_sounds[dead], "Master")
+				end
+				if killing_sprees[dead] then
+					SendChatMessage(killing_sprees[dead], "SAY")
+					safePlaySound(killing_spree_sounds[dead], "Master")
 				end
 			end
 		end
 	end
 end)
+
+killstreaks.commands = {
+	togglesound = toggleSound,
+	play = play,
+	help = function()
+		killstreaks:Print("List of all slash commands:")
+		killstreaks:Print("|cff00cc66/ks help|r - Shows all commands")
+		killstreaks:Print("|cff00cc66/ks togglesound|r - turns the sound on or off (default on)")
+	end,
+}
+
+local function handleSlashCommands(str)
+	if #str == 0 then
+		killstreaks.commands.help()
+	end
+
+	local args = {}
+	for _, arg in pairs({ string.split(" ", str) }) do
+		if #arg > 0 then
+			table.insert(args, arg)
+		end
+	end
+
+	local path = killstreaks.commands
+
+	for id, arg in ipairs(args) do
+		arg = string.lower(arg)
+
+		if path[arg] then
+			if type(path[arg]) == "function" then
+				path[arg](select(id + 1, args))
+				return
+			end
+		else
+			killstreaks.commands.help()
+			return
+		end
+	end
+end
+
+-- Register Slash Commands
+SLASH_Killstreaks1 = "/killstreaks"
+SLASH_Killstreaks2 = "/ks"
+SlashCmdList.Killstreaks = handleSlashCommands
